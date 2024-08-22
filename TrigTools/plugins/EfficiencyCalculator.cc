@@ -10,6 +10,7 @@
 #include "DataFormats/HLTReco/interface/TriggerObject.h"
 #include "DataFormats/HLTReco/interface/EgammaObject.h"
 #include "L1Trigger/L1TGlobal/plugins/L1TGlobalProducer.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
 //#include "HLTrigger/Egamma/plugins/HLTEgammaL1TMatchFilterRegional.cc"
 #include "CondFormats/DataRecord/interface/L1TGlobalParametersRcd.h"
 #include "DataFormats/HLTReco/interface/TriggerFilterObjectWithRefs.h"
@@ -17,6 +18,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+#include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
 
 #include <vector>
 #include <string>
@@ -49,26 +51,24 @@ class EfficiencyCalculator : public edm::one::EDAnalyzer<edm::one::WatchRuns> {
 private:
   
   std::string hltProcess_; //name of HLT process, usually "HLT"
-  edm::EDGetTokenT<std::vector<trigger::EgammaObject> > eleToken_;
+  edm::EDGetTokenT<std::vector<pat::Electron> > eleToken_;
   edm::EDGetTokenT<edm::TriggerResults > hltToken_;
-  edm::EDGetTokenT<trigger::TriggerEvent > hltsevtToken_;
+  edm::EDGetTokenT<std::vector<pat::TriggerObjectStandAlone> > triggerObjectsToken_;
+  
+  //edm::EDGetTokenT<trigger::TriggerEvent > hltsevtToken_;
   //edm::EDGetTokenT<std::vector<reco::GenParticle> > genToken_;
-  edm::EDGetTokenT<trigger::TriggerFilterObjectWithRefs > L1Token_;
+  //edm::EDGetTokenT<trigger::TriggerFilterObjectWithRefs > L1Token_;
   //edm::EDGetTokenT<std::vector<PileupSummaryInfo> > pileupSummaryToken_;
   edm::Service<TFileService> fs;
   double endcap_end_ = 2.5;
-  TH1D* num_ele_pt_EB1;
-  TH1D* num_ele_pt_EB2;
-  TH1D* num_ele_pt_EE1;
-  TH1D* num_ele_pt_EE2;
+  TH1D* num_ele_pt_EB;
+  TH1D* num_ele_pt_EE;
   TH1D* num_ele_eta;
   TH1D* num_ele_phi;
   TH1D* num_ele_pu;
 
-  TH1D* den_ele_pt_EB1;
-  TH1D* den_ele_pt_EB2;
-  TH1D* den_ele_pt_EE1;
-  TH1D* den_ele_pt_EE2;
+  TH1D* den_ele_pt_EB;
+  TH1D* den_ele_pt_EE;
   TH1D* den_ele_eta;
   TH1D* den_ele_phi;
   TH1D* den_ele_pu;
@@ -90,23 +90,17 @@ public:
 EfficiencyCalculator::EfficiencyCalculator(const edm::ParameterSet& iConfig):
   hltProcess_("HLTX")
 {
-  eleToken_     = consumes<std::vector<trigger::EgammaObject> >(edm::InputTag("hltEgammaHLTExtra","","HLTX"));
-  hltToken_     = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","","HLTX"));
-  hltsevtToken_ = consumes<trigger::TriggerEvent>(edm::InputTag("hltTriggerSummaryAOD","","HLTX"));
-  //genToken_     = consumes<std::vector<reco::GenParticle> >(edm::InputTag("genParticles"));
-  //pileupSummaryToken_ = consumes<std::vector<PileupSummaryInfo> >(edm::InputTag("addPileupInfo"));
+  eleToken_     = consumes<std::vector<pat::Electron> >(edm::InputTag("slimmedElectrons","","RECO"));
+  hltToken_     = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","","HLT"));
+  //hltsevtToken_ = consumes<trigger::TriggerEvent>(edm::InputTag("hltTriggerSummaryAOD","","HLTX"));
+  triggerObjectsToken_ = consumes<std::vector<pat::TriggerObjectStandAlone> > (edm::InputTag("slimmedPatTrigger","","RECO"));
   
-
   // pT
-  num_ele_pt_EB1 = fs->make<TH1D>("num_ele_pt_EB1",";pT (GeV);Events",50,0,500);
-  num_ele_pt_EB2 = fs->make<TH1D>("num_ele_pt_EB2",";pT (GeV);Events",50,0,500);
-  num_ele_pt_EE1 = fs->make<TH1D>("num_ele_pt_EE1",";pT (GeV);Events",50,0,500);
-  num_ele_pt_EE2 = fs->make<TH1D>("num_ele_pt_EE2",";pT (GeV);Events",50,0,500);
+  num_ele_pt_EB = fs->make<TH1D>("num_ele_pt_EB",";pT (GeV);Events",10,0,100);
+  num_ele_pt_EE = fs->make<TH1D>("num_ele_pt_EE",";pT (GeV);Events",10,0,100);
 
-  den_ele_pt_EB1 = fs->make<TH1D>("den_ele_pt_EB1",";pT (GeV);Events",50,0,500);
-  den_ele_pt_EB2 = fs->make<TH1D>("den_ele_pt_EB2",";pT (GeV);Events",50,0,500);
-  den_ele_pt_EE1 = fs->make<TH1D>("den_ele_pt_EE1",";pT (GeV);Events",50,0,500);
-  den_ele_pt_EE2 = fs->make<TH1D>("den_ele_pt_EE2",";pT (GeV);Events",50,0,500);
+  den_ele_pt_EB = fs->make<TH1D>("den_ele_pt_EB",";pT (GeV);Events",10,0,100);
+  den_ele_pt_EE = fs->make<TH1D>("den_ele_pt_EE",";pT (GeV);Events",10,0,100);
 
   // eta
   num_ele_eta = fs->make<TH1D>("num_ele_eta",";eta;Events",53,-2.65,2.65);
@@ -143,13 +137,35 @@ std::vector<const trigger::TriggerObject*> getListFilterPassedObj(const std::str
 }
 
 
-std::vector<const trigger::TriggerObject*> matchTrigObjs(const float eta,const float phi,const float pT,std::vector<const trigger::TriggerObject*> trigObjs,const float maxDeltaR=0.1, const float maxDpT=0.1)
+//std::vector<const trigger::TriggerObject*> matchTrigObjs(const float eta,const float phi,const float pT,std::vector<const trigger::TriggerObject*> trigObjs,const float maxDeltaR=0.1, const float maxDpT=0.1)
+//{
+//  std::vector<const trigger::TriggerObject*> matchedObjs;
+//  const float maxDR2 = maxDeltaR*maxDeltaR;
+//  for(auto& trigObj : trigObjs){
+//    const float deltaR2 = reco::deltaR2(eta, phi, trigObj->eta(), trigObj->phi());
+//    if(deltaR2 < maxDR2 && (fabs(pT - trigObj->pt())/pT) < maxDpT) matchedObjs.push_back(trigObj);
+//  }
+//  return matchedObjs;
+//}
+
+//std::vector<const pat::TriggerObjectStandAlone*> matchTrigObjs(const float eta,const float phi,std::vector<const pat::TriggerObjectStandAlone*> trigObjs,const float maxDeltaR=0.1)
+//{
+//  std::vector<const pat::TriggerObjectStandAlone*> matchedObjs;
+//  const float maxDR2 = maxDeltaR*maxDeltaR;
+//  for(auto& trigObj : trigObjs){
+//    const float deltaR2 = reco::deltaR2(eta, phi, trigObj->eta(), trigObj->phi());
+//    if(deltaR2 < maxDR2) matchedObjs.push_back(trigObj);
+//  }
+//  return matchedObjs;
+//}
+
+std::vector<pat::TriggerObjectStandAlone> matchTrigObjs(const float eta,const float phi,std::vector<pat::TriggerObjectStandAlone> trigObjs,const float maxDeltaR=0.1)
 {
-  std::vector<const trigger::TriggerObject*> matchedObjs;
+  std::vector<pat::TriggerObjectStandAlone> matchedObjs;
   const float maxDR2 = maxDeltaR*maxDeltaR;
-  for(auto& trigObj : trigObjs){
-    const float deltaR2 = reco::deltaR2(eta, phi, trigObj->eta(), trigObj->phi());
-    if(deltaR2 < maxDR2 && (fabs(pT - trigObj->pt())/pT) < maxDpT) matchedObjs.push_back(trigObj);
+  for(auto trigObj : trigObjs){
+    const float deltaR2 = reco::deltaR2(eta, phi, trigObj.eta(), trigObj.phi());
+    if(deltaR2 < maxDR2) matchedObjs.push_back(trigObj);
   }
   return matchedObjs;
 }
@@ -196,7 +212,20 @@ float matchToGen(const float eta,const float phi,const std::vector<reco::GenPart
 }
 
 
-float calculateInvMass(const trigger::EgammaObject tagElectron, const trigger::EgammaObject probeCandidate) {
+//float calculateInvMass(const trigger::EgammaObject tagElectron, const trigger::EgammaObject probeCandidate) {
+//
+//  TLorentzVector tag;
+//  TLorentzVector probe;
+//
+//  tag.SetPxPyPzE(tagElectron.px(),tagElectron.py(),tagElectron.pz(),tagElectron.energy());
+//  probe.SetPxPyPzE(probeCandidate.px(),probeCandidate.py(),probeCandidate.pz(),probeCandidate.energy());
+//
+//  float invMass = (tag + probe).M();
+//
+//  return invMass;
+//}
+
+float calculateInvMass(const pat::Electron tagElectron, const pat::Electron probeCandidate) {
 
   TLorentzVector tag;
   TLorentzVector probe;
@@ -207,7 +236,6 @@ float calculateInvMass(const trigger::EgammaObject tagElectron, const trigger::E
   float invMass = (tag + probe).M();
 
   return invMass;
-
 }
 
 
@@ -222,97 +250,89 @@ void EfficiencyCalculator::beginRun(const edm::Run& run,const edm::EventSetup& s
 void EfficiencyCalculator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
-  edm::Handle<std::vector<trigger::EgammaObject> > ele;
+  edm::Handle<std::vector<pat::Electron> > ele;
   iEvent.getByToken(eleToken_,ele);
 
   edm::Handle<edm::TriggerResults > hlt;
   iEvent.getByToken(hltToken_,hlt);
 
-  edm::Handle<trigger::TriggerEvent > hltsevt;
-  iEvent.getByToken(hltsevtToken_,hltsevt);
+  //edm::Handle<trigger::TriggerEvent > hltsevt;
+  //iEvent.getByToken(hltsevtToken_,hltsevt);
 
-  //edm::Handle<std::vector<reco::GenParticle> > gen;
-  //iEvent.getByToken(genToken_,gen);
+  edm::Handle<std::vector<pat::TriggerObjectStandAlone> > triggerObjects;
+  iEvent.getByToken(triggerObjectsToken_, triggerObjects);
 
-  // edm::Handle<std::vector<PileupSummaryInfo> >  PUInfo;
-  // iEvent.getByToken(pileupSummaryToken_, PUInfo);
-  
-  // float nPU = -1;
- 
-  // std::vector<PileupSummaryInfo>::const_iterator PUi; 
- 
-  // for(PUi = PUInfo->begin(); PUi != PUInfo->end(); ++PUi) {
-  //   const int BX = PUi->getBunchCrossing();
-  //   if(BX == 0){
-  //     nPU = PUi->getTrueNumInteractions(); //Corresponding to the in-time PU
-  //   }
-  // }
-  
-  auto eg_trig_objs_filter = getListFilterPassedObj("hltEle32WPTightGsfTrackIsoFilter",*hltsevt.product());
+
+  //Create a list of trigger objects with unpacked filter names
+  std::vector<pat::TriggerObjectStandAlone> unpackedTriggerObjects;
+  for(auto& trigObj : *triggerObjects){
+    unpackedTriggerObjects.push_back(trigObj);
+    unpackedTriggerObjects.back().unpackFilterLabels(iEvent,*hlt);
+  }
+
+
+  //auto eg_trig_objs_filter = getListFilterPassedObj("hltEle32WPTightGsfTrackIsoFilter",*hltsevt.product());
 
   auto electrons = ele.product();
  
   if(electrons->size() < 2) return;
 
-  std::cout << globCounter << std::endl;
+  std::vector<pat::Electron> listOfTags;
 
-  std::vector<trigger::EgammaObject> listOfTags;
+
 
   for(auto& el : *electrons){
 
-    if(fabs(el.eta()) > barrel_end_ || el.pt() < 32.) continue;
+    if(fabs(el.eta()) > barrel_end_ || el.pt() < 30. || !(el.electronID("mvaEleID-RunIIIWinter22-iso-V1-wp80"))) continue;
 
-    auto matchedTrigObjs = matchTrigObjs(el.eta(),el.phi(),el.pt(),eg_trig_objs_filter);
+    auto matchedTrigObjsTags = matchTrigObjs(el.eta(),el.phi(),unpackedTriggerObjects);
     
-    if(matchedTrigObjs.size() > 0) listOfTags.push_back(el);
+    //for(const auto& trigObj : *matchedTrigObjsTags){
+  
+    for(auto trigObj : matchedTrigObjsTags){
+      if(trigObj.hasFilterLabel("hltEle30WPTightGsfTrackIsoFilter")){
+       listOfTags.push_back(el);
+      }
+    }
   }
 
+  bool isGoodPair = false;
   for(auto& el : *electrons){
 
-    if(fabs(el.eta()) > endcap_end_) continue;
+    if(fabs(el.eta()) > endcap_end_ || !(el.electronID("mvaEleID-RunIIIWinter22-iso-V1-wp80"))) continue;
 
     for(auto tag : listOfTags){
 
       float invMass = calculateInvMass(tag, el);
-      if(fabs(invMass - 91.1876) < 30. && tag.id()*el.id() < 0) break;
-      else return;
+      isGoodPair = (fabs(invMass - 91.1876) < 30. && tag.pdgId()*el.pdgId() < 0)? true : false;
+      if(isGoodPair) break;
     }
 
-    //if(!matchToGen(el.eta(),el.phi(),*(gen.product()))) continue;
-
-    auto matched_objs_filter = matchTrigObjs(el.eta(),el.phi(),el.pt(),eg_trig_objs_filter);
-    auto nmatch_filter = matched_objs_filter.size();
-    
+    if(!isGoodPair) continue;
 
     //Fill denominators
-      if (fabs(el.eta()) < 1.0 ) den_ele_pt_EB1->Fill(el.pt());
-      if (fabs(el.eta()) > 1.0 && fabs(el.eta()) < 1.44 ) den_ele_pt_EB2->Fill(el.pt());
+    if (fabs(el.eta()) < 1.5 ) den_ele_pt_EB->Fill(el.pt());
+    else den_ele_pt_EE->Fill(el.pt());
 
-      if (fabs(el.eta()) > 1.56 && fabs(el.eta()) < 2.0) den_ele_pt_EE1->Fill(el.pt());
-      if (fabs(el.eta()) > 2.00 && fabs(el.eta()) < 2.5) den_ele_pt_EE2->Fill(el.pt());
-
-      if (el.pt() > 32.) {
+    if (el.pt() > 30.) {
     	den_ele_eta->Fill(el.eta());
     	den_ele_phi->Fill(el.phi());
-      }
-      
-
-    //Fill numerators                                                                                                                                
-    if(nmatch_filter>0){
-
-      if (fabs(el.eta()) < 1.0 ) num_ele_pt_EB1->Fill(el.pt());
-      if (fabs(el.eta()) > 1.0 && fabs(el.eta()) < 1.44) num_ele_pt_EB2->Fill(el.pt());
-
-      if (fabs(el.eta()) > 1.56 && fabs(el.eta()) < 2.0) num_ele_pt_EE1->Fill(el.pt());
-      if (fabs(el.eta()) > 2.00 && fabs(el.eta()) < 2.5) num_ele_pt_EE2->Fill(el.pt());
-
-      if (el.pt() > 32.) {
-    	num_ele_eta->Fill(el.eta());
-    	num_ele_phi->Fill(el.phi());
-	occupancy_phi_eta_all->Fill(el.eta(),el.phi());
-      }
-
     }
+
+    auto matchedTrigObjsProbes = matchTrigObjs(el.eta(),el.phi(),unpackedTriggerObjects);
+    //for(const auto& trigObj : *matchedTrigObjsProbes){
+    for(auto trigObj : matchedTrigObjsProbes){
+      if(trigObj.hasFilterLabel("hltEle30WPTightGsfTrackIsoFilter")){
+        if (fabs(el.eta()) < 1.5 ) num_ele_pt_EB->Fill(el.pt());
+        else num_ele_pt_EE->Fill(el.pt());
+
+        if (el.pt() > 30.) {
+    	    num_ele_eta->Fill(el.eta());
+    	    num_ele_phi->Fill(el.phi());
+        }
+        break; //Avoid to fill the numerator more than once with the same object if more than one offline-online matching is found
+      }
+    }   
   }
 }
 
