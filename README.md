@@ -7,7 +7,7 @@ cd CMSSW_14_0_14/src
 cmsenv
 voms-proxy-init --voms cms
 git cms-init
-git clone -b Data_MINI git@github.com:RSalvatico/EGEfficiency.git EGEfficiency
+git clone -b Data_RAWRECO git@github.com:RSalvatico/EGEfficiency.git EGEfficiency
 scram b -j 8
 ```
 
