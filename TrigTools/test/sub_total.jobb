@@ -1,1 +1,0 @@
-condor_submit /afs/cern.ch/work/r/rselvati/private/testBPIX/CMSSW_13_0_10/src/SteamRatesEdmWorkflow/Prod/condor_cluster.sub

@@ -1,6 +1,6 @@
 <export>
 </export>
 
-<library   name="EGToolsTrigTools_plugins" file="EfficiencyCalculator.cc">
-  <use   name="EGTools/TrigTools"/>
+<library   name="EGEfficiencyTrigTools_plugins" file="EfficiencyCalculator.cc">
+  <use   name="EGEfficiency/TrigTools"/>
 </library>

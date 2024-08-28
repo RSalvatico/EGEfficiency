@@ -4,38 +4,36 @@ import os
 
 process = cms.Process("USER")
 
-reRunL1 = True
+reRunL1 = False
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.load("FWCore.MessageService.MessageLogger_cfi")
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '130X_dataRun3_PromptAnalysis_v1') 
+process.GlobalTag = GlobalTag(process.GlobalTag, '140X_dataRun3_Prompt_v4') 
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 
-# dir1Name = "/afs/cern.ch/user/r/rselvati/work/private/testBPIX/CMSSW_13_0_10/src/SteamRatesEdmWorkflow/Prod/hltModified/"
-# dir2Name = "/eos/cms/store/mc/Run3Summer22EEDR/ZprimeToEE_M-6000_TuneCP5_13p6TeV-pythia8/GEN-SIM-RAW/Poisson70KeepRAW_124X_mcRun3_2022_realistic_postEE_v1-v1/720000/"
-# fileList1 = filter(os.path.isfile, glob.glob(dir1Name + "*.root"))
-# fileList2 = filter(os.path.isfile, glob.glob(dir2Name + "*.root"))
-# fList = []
-# for f in fileList1:
-#      fs = str(f).replace("/afs/","file:/afs/")
-#      fList.append(fs)
-# for f in fileList2:
-#     fs = str(f).replace("/eos/","file:/eos/")
-#     fList.append(fs)
-# print(fList)
-#from list_relval import fileList
+dir1Name = "/eos/cms/store/group/phys_egamma/ec/rsalvatico/MiniHoE/"#test/"
+fileList1 = filter(os.path.isfile, glob.glob(dir1Name + "*.root"))
+fList = []
+file_counter = 0
+for f in fileList1:
+    fs = str(f).replace("/eos/","file:/eos/")
+    fList.append(fs)
+    file_counter += 1
+    #if file_counter == 200: break
+
 process.source = cms.Source("PoolSource",
-                                fileNames = cms.untracked.vstring(#fList
-                                    'root://cms-xrd-global.cern.ch//store/data/Run2023D/EGamma0/MINIAOD/PromptReco-v2/000/370/667/00000/cae35b2f-8d01-4518-9b32-bfbdb6ef1709.root'
+                                fileNames = cms.untracked.vstring(fList
+                                    #'file:/eos/cms/store/group/phys_egamma/ec/rsalvatico/MiniHoE/stepMINI_7052362_0.root'
+                                    #'file:/afs/cern.ch/user/r/rselvati/work/private/MyEffiPackage/CMSSW_14_0_14/src/stepMINIModified.root'
                 )
                             )
 process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 #Output file
 process.TFileService = cms.Service("TFileService",
-   fileName = cms.string("Efficiency_Modified.root")
+   fileName = cms.string("Efficiency_Standard.root")
 )
 
 
