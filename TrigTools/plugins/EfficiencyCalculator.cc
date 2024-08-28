@@ -85,8 +85,8 @@ EfficiencyCalculator::EfficiencyCalculator(const edm::ParameterSet& iConfig):
   hltProcess_("HLT")
 {
   eleToken_     = consumes<std::vector<pat::Electron> >(edm::InputTag("slimmedElectrons","","PAT"));
-  hltToken_     = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","","HLT"));
-  //hltHoEToken_     = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","","MYHLT"));
+  hltToken_     = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","","MYHLT"));
+  //hltHoEToken_     = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","","HLT"));
   //hltsevtToken_ = consumes<trigger::TriggerEvent>(edm::InputTag("hltTriggerSummaryAOD","","HLTX"));
   triggerObjectsToken_ = consumes<std::vector<pat::TriggerObjectStandAlone> > (edm::InputTag("slimmedPatTrigger","","PAT"));
   

@@ -25,6 +25,15 @@ cmsDriver.py stepMINI -s PAT --conditions auto:phase1_2024_realistic --datatier 
 ```
 If you remove the option `--hltProcess MYHLT` from the configuration, the standard `HLT` collections will be used to make PAT objects, such as `pat::TriggerObjectStandAlone`.
 
+**Important**: If then you want to run the over standard HLT collections, you should change the
+```
+hltToken_     = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","","MYHLT"));
+```
+to
+```
+hltToken_     = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","","HLT"));
+```
+
 There is a script to run `makeMini_cfg.py` on HTCondor. From `test/`, you can do:
 ```
 python3 prepareCondorJobs.py
