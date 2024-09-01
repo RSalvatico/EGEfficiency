@@ -27,7 +27,7 @@ for f in fileList1:
 process.source = cms.Source("PoolSource",
                                 fileNames = cms.untracked.vstring(#fList
                                     #'file:/eos/cms/store/group/phys_egamma/ec/rsalvatico/MiniHoE/stepMINI_7052362_0.root'
-                                    'file:/eos/cms/store/group/phys_egamma/tnpTuples/rverma/crab_CMSHLT_3313/EGamma0/crab_CMSHLT_3313/240823_124805/0000/test_RAW2DIGI_L1REPACK_HLT_234.root'
+                                    'file:/afs/cern.ch/work/r/rverma/public/cms-egamma-hlt/CMSHLT-3313/new_test_RAW2DIGI_L1REPACK_HLT.root'
                 )
                             )
 process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
